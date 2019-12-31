@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+
+<body>
+    <!--  -->
+    <input type="file" name="file" id="files" multiple />
+
+    <!--  -->
+    <output id="list"></output>
+    <p class="p2">选择 *.sbv 或 *.srt</p>
+    <label class="drag" for="files">
+        <div class="con">
+            <p class="p1">+</p>
+        </div>
+        <div>
+            点击选择文件（可批量）
+        </div>
+    </label>
+    <!--  -->
+    <!-- <div class="ready"> 一切就绪！</div> -->
+    <div class="jg" id="jg"></div>
+</body>
+<style>
+    /* 格式化 */
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: "微软雅黑";
+        font-size: 12px;
+        color: #000;
+        width: 100%;
+        height: 100%
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    span,
+    p,
+    ul,
+    li,
+    table,
+    tr,
+    td,
+    input,
+    a,
+    dl,
+    dt,
+    dd {
+        margin: 0;
+        padding: 0;
+        text-decoration: none;
+        list-style: none;
+        text-shadow: rgba(0, 0, 0, 0.08) 0px 1px 2px;
+    }
+
+    img {
+        vertical-align: top;
+        border: none
+    }
+
+    #jg {
+        font-size: 16px;
+        line-height: 30px;
+        text-align: center;
+    }
+
+    .drag {
+        width: 50%;
+        padding: 30px;
+        background-color: rgb(192, 196, 192);
+        border-radius: 50px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        flex-direction: column;
+    }
+
+    .drag:hover {
+        opacity: .8;
+    }
+
+    .con {}
+
+    .p1 {
+        font-size: 200px;
+        line-height: 200px;
+        height: 200px;
+        opacity: .3;
+    }
+
+    .p2 {
+        font-size: 30px;
+        line-height: 70px;
+        text-align: center;
+        font-weight: 900;
+    }
+
+    #files {
+        display: none;
+        visibility: hidden;
+    }
+
+    .ready {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 100;
+        width: 100vw;
+        height: 100vh;
+        backdrop-filter: saturate(180%) blur(10px);
+        background-color: rgba(33, 96, 76, 0.8);
+        color: #fff;
+        font-size: 22px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+<script>
+    function readText(elementId) {
+        document.getElementById(`${elementId}`).addEventListener('change', (e) => {
+            let files = [...e.target.files]
+            files.map(f => {
+                let name = f.name
+                let name_n = name.slice(0, -4)
+                let n_ = name.slice(-4)
+                //读取文件
+                let reader = new FileReader()
+                reader.onload = (e) => {
+                    let data = null
+                    if (n_ === '.srt') {
+                        data = str2sbv(e.target.result)
+                        outJg(`${name} -> ${name_n}.sbv ✅\n`)
+                        funDownload(data, `${name_n}.sbv`)
+                    } else if (n_ === '.sbv') {
+                        data = sbv2str(e.target.result)
+                        outJg(`${name} -> ${name_n}.srt ✅\n`)
+                        funDownload(data, `${name_n}.srt`)
+                    }
+
+                }
+                reader.readAsText(f)
+            })
+        })
+    }
+    //数组分组
+    function chunk(arr, len = 1) {
+        let newArr = []
+        while (arr.length > 0) {
+            newArr.push(arr.splice(0, len))
+        }
+        return newArr
+    }
+    //下载文件
+    function funDownload(content, filename) {
+        let eleLink = document.createElement('a');
+        eleLink.download = filename;
+        eleLink.style.display = 'none';
+        // 字符内容转变成blob地址
+        let blob = new Blob([content]);
+        eleLink.href = URL.createObjectURL(blob);
+        // 触发点击
+        document.body.appendChild(eleLink);
+        eleLink.click();
+        // 然后移除
+        document.body.removeChild(eleLink);
+        // location.reload() 
+    };
+    //显示记录
+    function outJg(newText) {
+        let ele = document.getElementById(`jg`)
+        let t = ele.innerText
+        t = t + newText
+        ele.innerText = t
+    }
+
+    //sbv->str
+    function sbv2str(txt) {
+        let txtArr = txt.split('\n')
+        let howChunk = txtArr.findIndex(f => f === '')
+        txtArr = chunk(txtArr, howChunk + 1)
+        txtArr = txtArr.map((x, index) => {
+            let t = x[0]
+            t = t.replace(',', ' --> ')
+            t = t.replace(/\./g, ',')
+
+            t = t.split(' --> ')
+            t = t.map(m => {
+                let h = m.split(':')
+                h[0] < 10 ? h[0] = '0' + h[0] : null
+                h = h.join(':')
+                return h
+            }).join(' --> ')
+            x[0] = t
+            x.unshift(index + 1 + '')
+            x = x.map(a => a + '\n')
+            return x
+        })
+        txtArr = txtArr.map(p => p.join('')).join('')
+        return txtArr
+        //00:00:03,368 --> 00:00:05,370
+        // 0:00:03.368,0:00:05.370
+    }
+    //str->sbv
+    function str2sbv(txt) {
+        let txtArr = txt.split('\n')
+        let howChunk = txtArr.findIndex(f => f === '')
+        txtArr = chunk(txtArr, howChunk + 1)
+        txtArr = txtArr.map(x => {
+            let t = x[1]
+            t = t.replace(/\,/g, '.')
+            t = t.replace(' --> ', ',')
+            t = t.split(',')
+            t = t.map(m => {
+                let h = m.split(':')
+                h[0] = h[0] - 0
+                h = h.join(':')
+                return h
+            }).join(',')
+            x[1] = t
+            x.shift()
+            x = x.map(a => a + '\n')
+            return x
+        })
+        txtArr = txtArr.map(p => p.join('')).join('')
+        return txtArr
+    }
+    // 运行
+    readText('files')
+</script>
+
+</html>
