@@ -3,7 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0"/>
+    <meta name=description content="sbv和srt文件的互相转换 Between SBV and SRT files">
+    <meta name=Keywords content=sbv2srt,srt2sbv>
+    <title>sbv2srt/srt2sbv</title>
 </head>
 
 <body>
@@ -12,13 +15,15 @@
 
     <!--  -->
     <output id="list"></output>
-    <p class="p2">选择 *.sbv 或 *.srt</p>
+    <p class="p2">Choose * . SBV Or * . SRT</p>
+    
     <label class="drag" for="files">
         <div class="con">
             <p class="p1">+</p>
         </div>
         <div>
             点击选择文件（可批量）
+            Click on select file (batch)
         </div>
     </label>
     <!--  -->
@@ -145,7 +150,7 @@
                         outJg(`${name} -> ${name_n}.sbv ✅\n`)
                         funDownload(data, `${name_n}.sbv`)
                     } else if (n_ === '.sbv') {
-                        data = sbv2str(e.target.result)
+                        data = sbv2srt(e.target.result)
                         outJg(`${name} -> ${name_n}.srt ✅\n`)
                         funDownload(data, `${name_n}.srt`)
                     }
@@ -187,7 +192,7 @@
     }
 
     //sbv->str
-    function sbv2str(txt) {
+    function sbv2srt(txt) {
         let txtArr = txt.split('\n')
         let howChunk = txtArr.findIndex(f => f === '')
         txtArr = chunk(txtArr, howChunk + 1)
