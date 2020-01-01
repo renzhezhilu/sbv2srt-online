@@ -3,31 +3,33 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0" />
     <meta name=description content="sbv和srt文件的互相转换 Between SBV and SRT files">
     <meta name=Keywords content=sbv2srt,srt2sbv>
     <title>sbv2srt/srt2sbv</title>
 </head>
 
-<body>
+<body id="body" class="">
     <!--  -->
     <input type="file" name="file" id="files" multiple />
 
     <!--  -->
     <output id="list"></output>
-    <p class="p2">Choose * . SBV Or * . SRT</p>
-    
+    <p class="p2">select/drag *.sbv & *.srt</p>
+
     <label class="drag" for="files">
         <div class="con">
             <p class="p1">+</p>
         </div>
         <div>
-            点击选择文件（可批量）
-            Click on select file (batch)
+            点击选择/拖放文件（可批量）
+            Click on select/drag file (batch)
         </div>
     </label>
     <!--  -->
-    <!-- <div class="ready"> 一切就绪！</div> -->
+    <div class="ready">
+        <p>一切就绪！ok!</p>
+    </div>
     <div class="jg" id="jg"></div>
 </body>
 <style>
@@ -117,7 +119,18 @@
         visibility: hidden;
     }
 
+    @keyframes ggg {
+        100% {
+            background-position: 100%;
+        }
+    }
+
+    body.ondragover .ready {
+        display: block
+    }
+
     .ready {
+
         position: fixed;
         top: 0;
         left: 0;
@@ -125,39 +138,60 @@
         width: 100vw;
         height: 100vh;
         backdrop-filter: saturate(180%) blur(10px);
-        background-color: rgba(33, 96, 76, 0.8);
         color: #fff;
         font-size: 22px;
         display: flex;
         justify-content: center;
         align-items: center;
+        border: 10px solid transparent;
+        box-sizing: border-box;
+        background:
+            linear-gradient(rgb(33, 96, 76),
+                rgba(33, 96, 76, 1)) padding-box,
+            repeating-linear-gradient(-45deg,
+                black 0, rgba(100, 167, 146, 0.8) 25%,
+                white 0, white 50%) 0/1em 1em;
+        animation: ggg 12s linear infinite;
+        opacity: .8;
+        display: none;
+    }
+
+    .ready p {
+        font-size: 80px;
+        text-align: center;
+        line-height: 300px;
     }
 </style>
 <script>
-    function readText(elementId) {
+    // 选择文件
+    function inputChange(elementId) {
         document.getElementById(`${elementId}`).addEventListener('change', (e) => {
             let files = [...e.target.files]
-            files.map(f => {
-                let name = f.name
-                let name_n = name.slice(0, -4)
-                let n_ = name.slice(-4)
-                //读取文件
-                let reader = new FileReader()
-                reader.onload = (e) => {
-                    let data = null
-                    if (n_ === '.srt') {
-                        data = str2sbv(e.target.result)
-                        outJg(`${name} -> ${name_n}.sbv ✅\n`)
-                        funDownload(data, `${name_n}.sbv`)
-                    } else if (n_ === '.sbv') {
-                        data = sbv2srt(e.target.result)
-                        outJg(`${name} -> ${name_n}.srt ✅\n`)
-                        funDownload(data, `${name_n}.srt`)
-                    }
-
+            readText(files)
+        })
+    }
+    //读取文件
+    function readText(files) {
+        files.map(f => {
+            let name = f.name
+            let name_n = name.slice(0, -4)
+            let n_ = name.slice(-4)
+            //读取文件
+            let reader = new FileReader()
+            reader.onload = (e) => {
+                let data = null
+                if (n_ === '.srt') {
+                    data = str2sbv(e.target.result)
+                    outJg(`${name} -> ${name_n}.sbv ✅\n`)
+                    funDownload(data, `${name_n}.sbv`)
+                } else if (n_ === '.sbv') {
+                    data = sbv2srt(e.target.result)
+                    outJg(`${name} -> ${name_n}.srt ✅\n`)
+                    funDownload(data, `${name_n}.srt`)
                 }
-                reader.readAsText(f)
-            })
+
+            }
+            reader.readAsText(f)
         })
     }
     //数组分组
@@ -190,7 +224,6 @@
         t = t + newText
         ele.innerText = t
     }
-
     //sbv->str
     function sbv2srt(txt) {
         let txtArr = txt.split('\n')
@@ -243,7 +276,41 @@
         return txtArr
     }
     // 运行
-    readText('files')
+    inputChange('files')
+</script>
+
+<script>
+    // 拖放上传
+    function dropzone() {
+        let holder = document.getElementById('body')
+        //拖住，重复执行
+        holder.ondragover = function(event) {
+            // console.log(event)
+            let close = setTimeout(() => {
+                    holder.className = ''
+                }, 3000)
+            if (holder.className !== 'ondragover') {
+                holder.className = 'ondragover'
+            }else{
+                clearTimeout(close)
+            }
+            return false
+        }
+        holder.ondragend = function(event) {
+            holder.className = ''
+            console.log('ondragend')
+            return false
+        }
+        // 放下
+        holder.ondrop = function(event) {
+            event.preventDefault()
+            holder.className = ''
+            let files = event.dataTransfer.files
+            console.log(files)
+            readText([...files])
+        }
+    }
+    dropzone()
 </script>
 
 </html>
