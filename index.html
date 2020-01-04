@@ -11,7 +11,7 @@
 
 <body id="body" class="">
     <!--  -->
-    <input type="file" name="file" id="files" multiple />
+    <input type="file" name="file" id="files" accept=".srt,.sbv" multiple />
 
     <!--  -->
     <output id="list"></output>
@@ -231,17 +231,19 @@
         txtArr = chunk(txtArr, howChunk + 1)
         txtArr = txtArr.map((x, index) => {
             let t = x[0]
-            t = t.replace(',', ' --> ')
-            t = t.replace(/\./g, ',')
+            if (t) {
+                t = t.replace(',', ' --> ')
+                t = t.replace(/\./g, ',')
 
-            t = t.split(' --> ')
-            t = t.map(m => {
-                let h = m.split(':')
-                h[0] < 10 ? h[0] = '0' + h[0] : null
-                h = h.join(':')
-                return h
-            }).join(' --> ')
-            x[0] = t
+                t = t.split(' --> ')
+                t = t.map(m => {
+                    let h = m.split(':')
+                    h[0] < 10 ? h[0] = '0' + h[0] : null
+                    h = h.join(':')
+                    return h
+                }).join(' --> ')
+                x[0] = t
+            }
             x.unshift(index + 1 + '')
             x = x.map(a => a + '\n')
             return x
@@ -254,20 +256,23 @@
     //str->sbv
     function str2sbv(txt) {
         let txtArr = txt.split('\n')
+        // console.log(txtArr)
         let howChunk = txtArr.findIndex(f => f === '')
         txtArr = chunk(txtArr, howChunk + 1)
         txtArr = txtArr.map(x => {
             let t = x[1]
-            t = t.replace(/\,/g, '.')
-            t = t.replace(' --> ', ',')
-            t = t.split(',')
-            t = t.map(m => {
-                let h = m.split(':')
-                h[0] = h[0] - 0
-                h = h.join(':')
-                return h
-            }).join(',')
-            x[1] = t
+            if (t) {
+                t = t.replace(/\,/g, '.')
+                t = t.replace(' --> ', ',')
+                t = t.split(',')
+                t = t.map(m => {
+                    let h = m.split(':')
+                    h[0] = h[0] - 0
+                    h = h.join(':')
+                    return h
+                }).join(',')
+                x[1] = t
+            }
             x.shift()
             x = x.map(a => a + '\n')
             return x
@@ -287,11 +292,11 @@
         holder.ondragover = function(event) {
             // console.log(event)
             let close = setTimeout(() => {
-                    holder.className = ''
-                }, 3000)
+                holder.className = ''
+            }, 3000)
             if (holder.className !== 'ondragover') {
                 holder.className = 'ondragover'
-            }else{
+            } else {
                 clearTimeout(close)
             }
             return false
